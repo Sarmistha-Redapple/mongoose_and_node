@@ -1,4 +1,5 @@
 const UserModel = require("../models/user");
+const NftModel = require("../models/nft");
 const response = require("../libs/responceLib");
 const passwordLib = require("../libs/passwordLib");
 const check = require("../libs/checkLib");
@@ -67,7 +68,7 @@ let login = async (req, res) => {
     let finduser = await UserModel.findOne({
       $and: [{ event_id: postData.event_id }, { username: postData.username }],
     })
-      .select("-__v -_id")
+      // .select("-__v -_id")
       .lean();
 
     if (check.isEmpty(finduser)) {
@@ -76,7 +77,7 @@ let login = async (req, res) => {
     }
 
     if (await passwordLib.verify(postData.password, finduser.password)) {
-      console.log("verified!");
+      // console.log("verified!", finduser);
       let payload = {
         user_id: finduser.user_id,
         username: finduser.username,
@@ -85,6 +86,7 @@ let login = async (req, res) => {
         mobile: finduser.mobile,
         token: await tokenLib.generateToken(finduser),
         owner_id: "",
+        id: finduser._id,
       };
       console.log(payload);
 
@@ -100,4 +102,72 @@ let login = async (req, res) => {
     console.log(apiResponse);
   }
 };
-module.exports = { userRegister: userRegister, userLogin: login };
+let UserDetails = async (req, res) => {
+  try {
+    const postData = req.body;
+    // console.log(postData);
+    let api_res = await UserModel.findOne({
+      _id: postData.id,
+    });
+    let payload = {
+      _id: api_res._id,
+      user_id: api_res.user_id,
+      username: api_res.username,
+      name: api_res.name,
+      email: api_res.email.toLowerCase(),
+      mobile: api_res.mobile,
+    };
+
+    let apiResponse = response.generate(
+      false,
+      "User details successfully retrieved!",
+      payload
+    );
+    res.status(200).send(apiResponse);
+  } catch (err) {
+    let apiResponse = response.generate(true, err.message, null);
+    res.status(400).send(apiResponse);
+    console.log(apiResponse);
+  }
+};
+let createNft = async (req, res) => {
+  try {
+    const postData = req.body;
+    const filter = { user_id: postData.user_id };
+    // delete postData._id;
+    const update = {
+      address: postData.address,
+      balance: postData.balance,
+    };
+    options = {
+      // upsert: true,
+      // new: true,
+      // setDefaultsOnInsert: true,
+      multi: false,
+    };
+    console.log(postData);
+    await NftModel.findOneAndUpdate(filter, update, options).lean();
+    let newNft = new NftModel({
+      user_id: postData.user_id,
+      balance: postData.balance,
+      created_on: postData.created_on,
+      address: postData.address,
+    });
+
+    let payload = (await newNft.save()).toObject();
+
+    delete payload.__v;
+    let apiResponse = response.generate(false, "Created new Nft", payload);
+    res.status(200).send(apiResponse);
+  } catch (err) {
+    let apiResponse = response.generate(true, err.message, null);
+    res.status(400).send(apiResponse);
+    console.log(apiResponse);
+  }
+};
+module.exports = {
+  userRegister: userRegister,
+  userLogin: login,
+  UserDetails: UserDetails,
+  createNft: createNft,
+};

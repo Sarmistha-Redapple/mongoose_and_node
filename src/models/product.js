@@ -7,7 +7,7 @@ let productSchema = new Schema({
   auction_start_date: { type: String, default: "" },
   auction_status: { type: String, default: "" },
   category_id: { type: String, default: "" },
-
+  category_name: { type: String, default: "" },
   price: { type: String, default: "" },
   product_description: { type: String, default: "" },
   product_img: { type: String, default: "" },
