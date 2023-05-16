@@ -13,6 +13,9 @@ module.exports = (app) => {
   router.post("/get-product-details", ProductController.ProductDetails);
   router.post("/get-user-details", userController.UserDetails);
   router.post("/create-update-nftOwner", userController.createNft);
-
+  router.post("/product-list-by-user", ProductController.ProductListByUser);
+  router.post("/send-product-to-auction", ProductController.ProductAuction);
+  // router.post("/add-bid", ProductController.addBid);
+  //
   app.use("/", router);
 };

@@ -5,6 +5,7 @@ const passwordLib = require("../libs/passwordLib");
 const check = require("../libs/checkLib");
 const tokenLib = require("../libs/tokenLib");
 const { v4: uuidv4 } = require("uuid");
+const mongoose = require("mongoose");
 
 let userRegister = async (req, res) => {
   try {
@@ -85,7 +86,7 @@ let login = async (req, res) => {
         email: finduser.email.toLowerCase(),
         mobile: finduser.mobile,
         token: await tokenLib.generateToken(finduser),
-        owner_id: "",
+        owner_id: finduser.owner_id,
         id: finduser._id,
       };
       console.log(payload);
@@ -133,32 +134,41 @@ let UserDetails = async (req, res) => {
 let createNft = async (req, res) => {
   try {
     const postData = req.body;
-    const filter = { user_id: postData.user_id };
-    // delete postData._id;
+
+    const filter = {
+      user_id: postData.user_id,
+    };
     const update = {
       address: postData.address,
       balance: postData.balance,
     };
-    options = {
-      // upsert: true,
-      // new: true,
-      // setDefaultsOnInsert: true,
-      multi: false,
-    };
-    console.log(postData);
-    await NftModel.findOneAndUpdate(filter, update, options).lean();
-    let newNft = new NftModel({
-      user_id: postData.user_id,
-      balance: postData.balance,
-      created_on: postData.created_on,
-      address: postData.address,
-    });
+    const usetUpdate = { owner_id: postData.address };
+    // console.log(postData);
+    let api_res = await NftModel.findOne(filter);
+    // console.log("api_res" + api_res);
 
-    let payload = (await newNft.save()).toObject();
-
-    delete payload.__v;
-    let apiResponse = response.generate(false, "Created new Nft", payload);
-    res.status(200).send(apiResponse);
+    if (check.isEmpty(api_res)) {
+      let newNft = new NftModel({
+        user_id: postData.user_id,
+        balance: postData.balance,
+        address: postData.address,
+      });
+      let payload = (await newNft.save()).toObject();
+      delete payload.__v;
+      let apiResponse = response.generate(false, "Created new Nft", payload);
+      res.status(200).send(apiResponse);
+    } else {
+      let api_res = await NftModel.findOneAndUpdate(filter, update, {
+        new: true,
+      }).lean();
+      let user_res = await UserModel.findOneAndUpdate(filter, usetUpdate, {
+        new: true,
+      }).lean();
+      // console.log(api_res);
+      // console.log("user_res", JSON.stringify(user_res));
+      let apiResponse = response.generate(false, "Update Nft", api_res);
+      res.status(200).send(apiResponse);
+    }
   } catch (err) {
     let apiResponse = response.generate(true, err.message, null);
     res.status(400).send(apiResponse);

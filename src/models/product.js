@@ -14,5 +14,7 @@ let productSchema = new Schema({
   product_title: { type: String, default: "" },
   status: { type: String, default: "" },
   step: { type: String, default: "" },
+  user_id: { type: String, default: "" },
+  bidList: { type: Array, default: [] },
 });
 module.exports = mongoose.model("Product", productSchema);
