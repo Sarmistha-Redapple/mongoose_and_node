@@ -15,7 +15,8 @@ module.exports = (app) => {
   router.post("/create-update-nftOwner", userController.createNft);
   router.post("/product-list-by-user", ProductController.ProductListByUser);
   router.post("/send-product-to-auction", ProductController.ProductAuction);
-  // router.post("/add-bid", ProductController.addBid);
+  router.post("/add-bid", ProductController.addBid);
+  router.post("/bid-list-by-product", ProductController.bidListByProduct);
   //
   app.use("/", router);
 };

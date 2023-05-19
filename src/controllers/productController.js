@@ -120,10 +120,33 @@ let addBid = async (req, res) => {
     const postData = req.body;
     const filter = {
       _id: postData.product_id,
+    };
+    const update = {
+      price: postData.price,
       owner_id: postData.owner_id,
       user_id: postData.user_id,
     };
-    const update = { price: postData.price };
+    let findProduct = await ProductModal.findOneAndUpdate(filter, {
+      $push: { bidList: update },
+    }).lean();
+    console.log(findProduct);
+    let apiResponse = response.generate(false, "find data", findProduct);
+    res.status(200).send(apiResponse);
+  } catch (err) {
+    let apiResponse = response.generate(true, err.message, null);
+    res.status(400).send(apiResponse);
+    console.log(apiResponse);
+  }
+};
+let bidListByProduct = async (req, res) => {
+  try {
+    const postData = req.body;
+    const filter = {
+      _id: postData.product_id,
+    };
+    let api_res = await ProductModal.findOne(filter);
+    let apiResponse = response.generate(false, "All bid list", api_res.bidList);
+    res.status(200).send(apiResponse);
   } catch (err) {
     let apiResponse = response.generate(true, err.message, null);
     res.status(400).send(apiResponse);
@@ -136,4 +159,5 @@ module.exports = {
   ProductListByUser: ProductListByUser,
   ProductAuction: ProductAuction,
   addBid: addBid,
+  bidListByProduct: bidListByProduct,
 };
