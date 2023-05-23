@@ -10,7 +10,7 @@ const mongoose = require("mongoose");
 let userRegister = async (req, res) => {
   try {
     const postData = req.body;
-
+    console.log(postData);
     // console.log("req" + JSON.stringify(postData));
     let finduser = await UserModel.findOne({
       $and: [
@@ -24,6 +24,7 @@ let userRegister = async (req, res) => {
         },
       ],
     }).lean();
+    console.log(finduser);
     let newUser = new UserModel({
       user_id: uuidv4(),
       username: postData.username,
@@ -31,6 +32,7 @@ let userRegister = async (req, res) => {
       email: postData.email.toLowerCase(),
       mobile: postData.mobile,
       password: await passwordLib.hash(postData.password),
+      // event_id: postData.event_id,
       //   user_img: req.body.user_img,
     });
     if (check.isEmpty(finduser)) {
@@ -86,7 +88,7 @@ let login = async (req, res) => {
         email: finduser.email.toLowerCase(),
         mobile: finduser.mobile,
         token: await tokenLib.generateToken(finduser),
-        owner_id: finduser.owner_id,
+        owner_address: finduser.owner_id,
         id: finduser._id,
       };
       console.log(payload);
@@ -106,7 +108,7 @@ let login = async (req, res) => {
 let UserDetails = async (req, res) => {
   try {
     const postData = req.body;
-    // console.log(postData);
+    console.log(postData);
     let api_res = await UserModel.findOne({
       _id: postData.id,
     });
@@ -117,6 +119,7 @@ let UserDetails = async (req, res) => {
       name: api_res.name,
       email: api_res.email.toLowerCase(),
       mobile: api_res.mobile,
+      owner_address: api_res.owner_id,
     };
 
     let apiResponse = response.generate(

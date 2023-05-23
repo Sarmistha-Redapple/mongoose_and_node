@@ -21,6 +21,18 @@ let generateToken = (data) => {
     }
   });
 };
+let verifyClaimWithoutSecret = (token) => {
+  return new Promise((resolve, reject) => {
+    jwt.verify(token, secretKey, function (err, decoded) {
+      if (err) {
+        reject(err);
+      } else {
+        resolve(decoded);
+      }
+    });
+  });
+};
 module.exports = {
   generateToken: generateToken,
+  verifyClaimWithoutSecret: verifyClaimWithoutSecret,
 };

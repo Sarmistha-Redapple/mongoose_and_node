@@ -2,11 +2,9 @@ const Joi = require("joi").extend(require("@joi/date"));
 const responseLib = require("../libs/responceLib");
 
 const customRegisterValidateSchema = Joi.object({
-  event_id: Joi.string().required(),
   username: Joi.string().required(),
   name: Joi.string().required(),
   password: Joi.string().max(20).required(),
-  user_type: Joi.number().integer().required().valid(3),
   email: Joi.string()
     .pattern(/^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/)
     .required(),
@@ -22,6 +20,7 @@ const customAdminLoginValidateSchema = Joi.object({
 let customRegisterValidate = async (req, res, next) => {
   try {
     const value = await customRegisterValidateSchema.validate(req.body);
+    console.log(JSON.stringify(value));
     if (value.hasOwnProperty("error")) {
       throw new Error(value.error);
     } else {

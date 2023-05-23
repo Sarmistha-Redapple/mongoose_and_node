@@ -1,6 +1,9 @@
 const ProductModal = require("../models/product");
 const response = require("../libs/responceLib");
 const check = require("../libs/checkLib");
+// const { default: mongoose, mongo } = require("mongoose");
+const Mongoose = require("mongoose");
+const ObjectId = Mongoose.Types.ObjectId;
 let ProductList = async (req, res) => {
   try {
     // console.log(req);
@@ -21,30 +24,50 @@ let ProductList = async (req, res) => {
 let ProductDetails = async (req, res) => {
   try {
     const postData = req.body;
-    let api_res = await ProductModal.findOne({
-      _id: postData.product_id,
-    });
-    let payload = [
+    // let api_res = await ProductModal.findOne({
+    //   _id: postData.product_id,
+    // });
+    // console.log("api_res", api_res);
+
+    // let payload = [
+    //   {
+    //     _id: api_res._id,
+    //     owner_id: api_res.owner_id,
+    //     auction_start_date: api_res.auction_start_date,
+    //     auction_end_date: api_res.auction_end_date,
+    //     auction_status: api_res.auction_status,
+    //     category_id: api_res.category_id,
+    //     price: api_res.price,
+    //     product_description: api_res.product_description,
+    //     product_title: api_res.product_title,
+    //     product_img: api_res.product_img,
+    //     category_name: api_res.category_name,
+    //     step: api_res.step,
+    //     status: api_res.status,
+    //     user_id: api_res.user_id,
+    //     bidList: api_res.bidList,
+    //     max_price: api_res.max_price,
+    //   },
+    // ];
+
+    let payload = await ProductModal.aggregate([
       {
-        _id: api_res._id,
-        owner_id: api_res.owner_id,
-        auction_start_date: api_res.auction_start_date,
-        auction_end_date: api_res.auction_end_date,
-        auction_status: api_res.auction_status,
-        category_id: api_res.category_id,
-        price: api_res.price,
-        product_description: api_res.product_description,
-        product_title: api_res.product_title,
-        product_img: api_res.product_img,
-        category_name: api_res.category_name,
-        step: api_res.step,
-        status: api_res.status,
-        user_id: api_res.user_id,
+        $match: {
+          _id: new ObjectId(postData.product_id),
+        },
       },
-    ];
+      {
+        $addFields: {
+          max_price: {
+            $max: "$bidList.price",
+          },
+        },
+      },
+    ]);
+    // console.log("payload=>>" + JSON.stringify(payload));
     let apiResponse = response.generate(
       false,
-      "Product details successfully retrieved!",
+      "Product details successfully retrieved!!",
       payload
     );
     res.status(200).send(apiResponse);
@@ -60,6 +83,7 @@ let ProductListByUser = async (req, res) => {
     let api_res = await ProductModal.findOne({
       owner_id: postData.owner_id,
     });
+    // console.log("api_res", api_res);
     let payload = [
       {
         _id: api_res._id,
@@ -76,11 +100,31 @@ let ProductListByUser = async (req, res) => {
         step: api_res.step,
         status: api_res.status,
         bidList: api_res.bidList,
+        // max_price: api_res.max_price,
       },
     ];
+
+    // let payload = await ProductModal.aggregate([
+    //   {
+    //     $match: {
+    //       owner_id: {
+    //         $in: [postData.owner_id],
+    //       },
+    //     },
+    //   },
+    // {
+    //   $addFields: {
+    //     max_price: {
+    //       $max: "$bidList.price",
+    //     },
+    //   },
+    // },
+    // ]);
+
+    // console.log("max==>", payload);
     let apiResponse = response.generate(
       false,
-      "Product details successfully retrieved!",
+      "Product details successfully retrieved!!!!!",
       payload
     );
     res.status(200).send(apiResponse);
@@ -153,6 +197,53 @@ let bidListByProduct = async (req, res) => {
     console.log(apiResponse);
   }
 };
+let MyBid = async (req, res) => {
+  try {
+    const postData = req.body;
+    const filter = {
+      owner_id: postData.owner_id,
+    };
+
+    let payload = await ProductModal.aggregate([
+      {
+        $match: {
+          owner_id: {
+            $in: [postData.owner_id],
+          },
+        },
+      },
+      {
+        $addFields: {
+          max_price: {
+            $max: "$bidList.price",
+          },
+        },
+      },
+    ]);
+    let apiResponse = response.generate(
+      false,
+      "My Bid successfully retrieved!!!!!",
+      payload
+    );
+    res.status(200).send(apiResponse);
+  } catch (err) {
+    let apiResponse = response.generate(true, err.message, null);
+    res.status(400).send(apiResponse);
+    console.log(apiResponse);
+  }
+};
+let productFilter = async (req, res) => {
+  try {
+    let api_res = await ProductModal.find({ price: { $gte: 100, $lte: 140 } });
+    let apiResponse = response.generate(false, "Filter list", api_res);
+    res.status(200).send(apiResponse);
+    // console.log(api_res);
+  } catch (err) {
+    let apiResponse = response.generate(true, err.message, null);
+    res.status(400).send(apiResponse);
+    console.log(apiResponse);
+  }
+};
 module.exports = {
   ProductList: ProductList,
   ProductDetails: ProductDetails,
@@ -160,4 +251,6 @@ module.exports = {
   ProductAuction: ProductAuction,
   addBid: addBid,
   bidListByProduct: bidListByProduct,
+  MyBid: MyBid,
+  productFilter: productFilter,
 };
