@@ -1,5 +1,7 @@
 const employees = require("../models/model");
 const response = require("../libs/responceLib");
+const inventory = require("../models/inventory");
+const orders = require("../models/orders");
 let addUser = async (req, res) => {
   try {
     const postData = req.body;
@@ -95,10 +97,41 @@ let deletedItem = async (req, res) => {
     // res.send(err);
   }
 };
+let lookupTest = async (req, res) => {
+  try {
+    // let api_res = await orders.aggregate([
+    //   {
+    //     $lookup: {
+    //       from: "inventories",
+    //       localField: "item",
+    //       foreignField: "sku",
+    //       as: "inventory_docs",
+    //     },
+    //   },
+    // ]);
+    let api_res = await inventory.aggregate([
+      {
+        $lookup: {
+          from: "orders",
+          localField: "sku",
+          foreignField: "item",
+          as: "inventory_docs",
+        },
+      },
+    ]);
+    // console.log(api_res);
+    let apiResponse = response.generate(false, "Success", api_res);
+    res.status(200).send(apiResponse);
+  } catch (err) {
+    let apiResponse = response.generate(true, err.message, null);
+    res.status(400).send(apiResponse);
+  }
+};
 module.exports = {
   addUser: addUser,
   getAllData: getAllData,
   getByIdData: getByIdData,
   getUpdatedData: getUpdatedData,
   deletedItem: deletedItem,
+  lookupTest: lookupTest,
 };

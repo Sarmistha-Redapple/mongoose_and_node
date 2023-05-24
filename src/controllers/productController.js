@@ -59,12 +59,21 @@ let ProductDetails = async (req, res) => {
       {
         $addFields: {
           max_price: {
-            $max: "$bidList.price",
+            $cond: {
+              if: { $isArray: "$bidList" },
+              then: {
+                $max: "$bidList.price",
+              },
+              else: "$price",
+            },
           },
         },
+        // max_price: {
+        //   $max: "$bidList.price",
+        // },
       },
     ]);
-    // console.log("payload=>>" + JSON.stringify(payload));
+    console.log("payload=>>" + JSON.stringify(payload[0].max_price));
     let apiResponse = response.generate(
       false,
       "Product details successfully retrieved!!",
