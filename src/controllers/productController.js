@@ -60,17 +60,14 @@ let ProductDetails = async (req, res) => {
         $addFields: {
           max_price: {
             $cond: {
-              if: { $isArray: "$bidList" },
-              then: {
-                $max: "$bidList.price",
+              if: {
+                $gt: [{ $size: "$bidList" }, 1],
               },
+              then: { $max: "$bidList.price" },
               else: "$price",
             },
           },
         },
-        // max_price: {
-        //   $max: "$bidList.price",
-        // },
       },
     ]);
     console.log("payload=>>" + JSON.stringify(payload[0].max_price));
