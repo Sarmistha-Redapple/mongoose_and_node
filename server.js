@@ -1,6 +1,8 @@
 const express = require("express");
 const fs = require("fs");
 const app = express();
+const multer = require("multer");
+const bodyParser = require("body-parser");
 const database = require("./www/db/db");
 const appConfig = require("./config/appConfig");
 const routeLoggerMiddleware = require("./src/middlewares/routeLogger");
@@ -11,7 +13,9 @@ const port = 4000;
 fs.readdirSync(schemaPath).forEach((file) => {
   if (~file.indexOf(".js")) require(schemaPath + "/" + file);
 });
+app.use(bodyParser.urlencoded({ extended: true }));
 
+app.set("view engine", "ejs");
 // for body parse
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));

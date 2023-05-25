@@ -1,18 +1,17 @@
-const UserModel = require("../models/user");
+const { User } = require("../models/user");
 const NftModel = require("../models/nft");
 const response = require("../libs/responceLib");
 const passwordLib = require("../libs/passwordLib");
 const check = require("../libs/checkLib");
 const tokenLib = require("../libs/tokenLib");
 const { v4: uuidv4 } = require("uuid");
-const mongoose = require("mongoose");
 
 let userRegister = async (req, res) => {
   try {
     const postData = req.body;
     console.log(postData);
     // console.log("req" + JSON.stringify(postData));
-    let finduser = await UserModel.findOne({
+    let finduser = await User.findOne({
       $and: [
         { event_id: postData.event_id },
         {
@@ -25,7 +24,7 @@ let userRegister = async (req, res) => {
       ],
     }).lean();
     console.log(finduser);
-    let newUser = new UserModel({
+    let newUser = new User({
       user_id: uuidv4(),
       username: postData.username,
       name: postData.name,
@@ -37,11 +36,11 @@ let userRegister = async (req, res) => {
     });
     if (check.isEmpty(finduser)) {
       let payload = (await newUser.save()).toObject();
-
+      console.log("payload", payload);
       delete payload.__v;
       delete payload._id;
       delete payload.password;
-      let apiResponse = response.generate(false, "Created new user", payload);
+      let apiResponse = response.generate(false, "Created new user1", payload);
       res.status(200).send(apiResponse);
     } else {
       if (finduser.event_id == postData.event_id) {
@@ -54,7 +53,11 @@ let userRegister = async (req, res) => {
         delete payload._id;
         delete payload.password;
 
-        let apiResponse = response.generate(false, "Created new user", payload);
+        let apiResponse = response.generate(
+          false,
+          "Created new user2",
+          payload
+        );
         res.status(200).send(apiResponse);
       }
     }
@@ -68,12 +71,13 @@ let userRegister = async (req, res) => {
 let login = async (req, res) => {
   try {
     const postData = req.body;
-    let finduser = await UserModel.findOne({
-      $and: [{ event_id: postData.event_id }, { username: postData.username }],
+    let finduser = await User.findOne({
+      username: postData.username,
+      // $and: [{ event_id: postData.event_id }, { username: postData.username }],
     })
       // .select("-__v -_id")
       .lean();
-
+    console.log(finduser);
     if (check.isEmpty(finduser)) {
       res.status(404);
       throw new Error("User not Registered!");
@@ -109,7 +113,7 @@ let UserDetails = async (req, res) => {
   try {
     const postData = req.body;
     console.log(postData);
-    let api_res = await UserModel.findOne({
+    let api_res = await User.findOne({
       _id: postData.id,
     });
     let payload = {
@@ -164,7 +168,7 @@ let createNft = async (req, res) => {
       let api_res = await NftModel.findOneAndUpdate(filter, update, {
         new: true,
       }).lean();
-      let user_res = await UserModel.findOneAndUpdate(filter, usetUpdate, {
+      let user_res = await User.findOneAndUpdate(filter, usetUpdate, {
         new: true,
       }).lean();
       // console.log(api_res);

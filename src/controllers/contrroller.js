@@ -2,6 +2,8 @@ const employees = require("../models/model");
 const response = require("../libs/responceLib");
 const inventory = require("../models/inventory");
 const orders = require("../models/orders");
+const { newCustomer_, books_1, books_2 } = require("../models/user");
+
 let addUser = async (req, res) => {
   try {
     const postData = req.body;
@@ -109,6 +111,8 @@ let lookupTest = async (req, res) => {
     //     },
     //   },
     // ]);
+
+    // OR//
     let api_res = await inventory.aggregate([
       {
         $lookup: {
@@ -119,7 +123,61 @@ let lookupTest = async (req, res) => {
         },
       },
     ]);
+
     // console.log(api_res);
+    let apiResponse = response.generate(false, "Success", api_res);
+    res.status(200).send(apiResponse);
+  } catch (err) {
+    let apiResponse = response.generate(true, err.message, null);
+    res.status(400).send(apiResponse);
+  }
+};
+let addmorecustomer = async (req, res) => {
+  try {
+    const postData = req.body;
+    console.log(postData);
+    let api_res = await newCustomer_.insertMany(postData);
+    console.log(api_res);
+    let apiResponse = response.generate(false, "Success", api_res);
+    res.status(200).send(apiResponse);
+  } catch (err) {
+    let apiResponse = response.generate(true, err.message, null);
+    res.status(400).send(apiResponse);
+  }
+};
+let tableOut = async (req, res) => {
+  try {
+    const postData = req.body;
+    let api_res = await books_1.aggregate([
+      { $group: { _id: "$author", books: { $push: "$title" } } },
+    ]);
+    console.log(api_res);
+    let apiResponse = response.generate(false, "Success", api_res);
+    res.status(200).send(apiResponse);
+  } catch (err) {
+    let apiResponse = response.generate(true, err.message, null);
+    res.status(400).send(apiResponse);
+  }
+};
+let projectDBEx = async (req, res) => {
+  try {
+    let api_res = await books_2.aggregate([
+      {
+        $project: {
+          title: 1,
+          "author.first": 1,
+          "author.last": 1,
+          "author.middle": {
+            $cond: {
+              if: { $eq: ["", "$author.middle"] },
+              then: "$$REMOVE",
+              else: "$author.middle",
+            },
+          },
+        },
+      },
+    ]);
+    console.log(api_res);
     let apiResponse = response.generate(false, "Success", api_res);
     res.status(200).send(apiResponse);
   } catch (err) {
@@ -134,4 +192,7 @@ module.exports = {
   getUpdatedData: getUpdatedData,
   deletedItem: deletedItem,
   lookupTest: lookupTest,
+  addmorecustomer: addmorecustomer,
+  tableOut: tableOut,
+  projectDBEx: projectDBEx,
 };
