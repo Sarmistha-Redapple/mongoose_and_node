@@ -5,21 +5,15 @@ const path = require("path");
 const response = require("../libs/responceLib");
 // SET STORAGE
 const multer = require("multer");
-const upload = multer({ dest: "images/" });
+// const upload = multer({ dest: "images/" });
 let imgUpload = async (req, res) => {
   try {
-    var img = fs.readFileSync(req.file.path);
-    var encode_img = img.toString("base64");
     var final_img = {
       name: req.file.filename,
-      // desc: req.body.desc,
       img: {
         data: fs.readFileSync(req.file.path),
         contentType: req.file.mimetype,
       },
-      // name: req.file.filename,
-      // img: fs.readFileSync(req.file.path),
-      // contentType: req.file.mimetype,
     };
 
     console.log("final_img", final_img);

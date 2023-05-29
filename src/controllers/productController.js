@@ -194,8 +194,46 @@ let bidListByProduct = async (req, res) => {
     const filter = {
       _id: postData.product_id,
     };
-    let api_res = await ProductModal.findOne(filter);
-    let apiResponse = response.generate(false, "All bid list", api_res.bidList);
+
+    // let api_res = await ProductModal.findOne(filter);
+    let api_res1 = await ProductModal.aggregate([
+      {
+        $match: { _id: new ObjectId(postData.product_id) },
+      },
+      {
+        $unwind: {
+          path: "$bidList",
+        },
+      },
+      {
+        $sort: {
+          bidList: -1,
+        },
+      },
+      {
+        $group: {
+          _id: "$_id",
+          bidList: {
+            $push: {
+              price: "$bidList.price",
+              owner_id: "$bidList.owner_id",
+              user_id: "$bidList.user_id",
+            },
+          },
+        },
+      },
+
+      // {
+      //   $project: {
+      //     bidList: 1,
+      //     _id: 0,
+      //   },
+      // },
+    ]);
+
+    console.log(api_res1);
+    let list = api_res1[0].bidList;
+    let apiResponse = response.generate(false, "All bid list", list);
     res.status(200).send(apiResponse);
   } catch (err) {
     let apiResponse = response.generate(true, err.message, null);
