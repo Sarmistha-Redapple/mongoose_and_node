@@ -34,9 +34,24 @@ let booksProject = new Schema({
   lastModified: { type: Date },
 });
 const books_2 = mongoose.model("books_", booksProject);
+
+let customer = new Schema(
+  {
+    CustomerName: { type: String },
+    ContactName: { type: String },
+    Address: { type: String },
+    City: { type: String },
+    PostalCode: { type: String },
+    Country: { type: String },
+  },
+  { collection: "Customers" }
+);
+const customerTable = mongoose.model("Customers", customer);
+
 module.exports = {
   User: userSchema,
   newCustomer_: newCustomer_,
   books_1: books_1,
   books_2: books_2,
+  customerTable: customerTable,
 };

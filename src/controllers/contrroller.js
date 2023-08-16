@@ -2,7 +2,12 @@ const employees = require("../models/model");
 const response = require("../libs/responceLib");
 const inventory = require("../models/inventory");
 const orders = require("../models/orders");
-const { newCustomer_, books_1, books_2 } = require("../models/user");
+const {
+  newCustomer_,
+  books_1,
+  books_2,
+  customerTable,
+} = require("../models/user");
 
 let addUser = async (req, res) => {
   try {
@@ -185,6 +190,56 @@ let projectDBEx = async (req, res) => {
     res.status(400).send(apiResponse);
   }
 };
+
+let customer_in = async (req, res) => {
+  try {
+    //EX: $in Operator Examples
+
+    // let api_res = await customerTable.find(
+    //   { Country: { $in: ["Germany", "France", "UK"] } },
+    //   { _id: 0 }
+    // );
+
+    //EX: $nin /NOT IN  Operator Examples
+
+    // let api_res = await customerTable.find(
+    //   { Country: { $nin: ["Germany", "France", "UK"] } },
+    //   { _id: 0 }
+    // );
+    //
+    // let api_res = await customerTable.aggregate([
+    //   {
+    //     $project: {
+    //       Country: 1,
+    //       _id: 1,
+    //     },
+    //   },
+    // ]);
+    let api_res = await customerTable.distinct("Country");
+
+    console.log(api_res);
+    let apiResponse = response.generate(false, "Success", api_res);
+    res.status(200).send(apiResponse);
+  } catch (err) {
+    let apiResponse = response.generate(true, err.message, null);
+    res.status(400).send(apiResponse);
+  }
+};
+let findCustomer = async (req, res) => {
+  try {
+    const postData = req.body;
+    let api_res = await customerTable.aggregate([
+      { $match: { Country: postData.country } },
+    ]);
+
+    console.log(api_res);
+    let apiResponse = response.generate(false, "Success", api_res);
+    res.status(200).send(apiResponse);
+  } catch (err) {
+    let apiResponse = response.generate(true, err.message, null);
+    res.status(400).send(apiResponse);
+  }
+};
 module.exports = {
   addUser: addUser,
   getAllData: getAllData,
@@ -195,4 +250,6 @@ module.exports = {
   addmorecustomer: addmorecustomer,
   tableOut: tableOut,
   projectDBEx: projectDBEx,
+  customer_in: customer_in,
+  findCustomer: findCustomer,
 };

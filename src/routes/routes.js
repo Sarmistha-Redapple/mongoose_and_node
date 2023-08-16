@@ -14,5 +14,7 @@ module.exports = (app) => {
   router.get("/outapi", controler.tableOut);
   router.post("/uploadphoto", upload.single("file"), imgCont.imgUpload);
   router.get("/projectdbex", controler.projectDBEx);
+  router.get("/in_operator", controler.customer_in);
+  router.post("/getDataByCountry", controler.findCustomer);
   app.use("/", router);
 };
